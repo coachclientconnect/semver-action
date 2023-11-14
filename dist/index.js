@@ -31093,7 +31093,7 @@ async function main() {
     `, {
       owner,
       repo,
-      prefix: prefix.replace(/\/$/, ''),  // remove trailing /, this is not allowed in query
+      query: prefix.replace(/\/$/, ''),  // remove trailing /, this is not allowed in query
     })
 
     const tagsList = _.get(tagsRaw, 'repository.refs.nodes', [])
