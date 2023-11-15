@@ -31055,7 +31055,7 @@ async function main() {
   const additionalCommits = core.getInput('additionalCommits').split('\n').map(l => l.trim()).filter(l => l !== '')
   const fromTag = core.getInput('fromTag')
   const includePattern = core.getInput('include')
-  const includeExpression = includePattern ? new RegExp(includePattern) : null
+  const includeExpression = includePattern != "" ? new RegExp(includePattern) : null
 
   const bumpTypes = {
     major: core.getInput('majorList').split(',').map(p => p.trim()).filter(p => p),
