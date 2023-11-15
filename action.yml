@@ -45,7 +45,7 @@ inputs:
     required: false
     default: ''
   include :
-    description: Specify a regular expression that must be matched by a file in a commit for it to be evaluated. If omitted, all commits are included.
+    description: Specify a regular expression that must be matched by a file in a commit for it to be evaluated. If omitted, all commits are evaluated.
     required: false
     default: ''
 outputs:
