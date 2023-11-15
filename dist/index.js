@@ -31201,15 +31201,7 @@ async function main() {
 
   // determine if commits should be processed. if there is no file expression, yes. otherwise,
   // process commits only if at least one file matches the file expression
-  var processCommits = true
-  if (filesExpression) {
-    core.info("evaluating pattern " + filesPattern + " " + JSON.stringify(files))
-    processCommits = _.some(files, file => {
-      core.info("evaluating " + file.filename)
-      return filesExpression.test(file.filename)
-    })
-  }
-
+  processCommits = !filesExpression || _.some(files, file => filesExpression.test(file.filename))
   if (processCommits) {
     for (const commit of commits) {
       try {
@@ -31236,6 +31228,8 @@ async function main() {
         core.info(`[INVALID] Skipping commit ${commit.sha} as it doesn't follow conventional commit format.`)
       }
     }
+  } else {
+    core.info(`[SKIP] No files matched the provided file pattern (${filesPattern}), ignoring commits`)
   }
 
   let bump = null
