@@ -67,6 +67,7 @@ jobs:
 | `prefix` | A prefix that will be ignored when parsing tags (e.g. `foobar/`). Useful for monorepos. The prefix will be added back to the output values. |         :x:        |  |
 | `additionalCommits` | A list of additional commit messages to parse in order to calculate semver. | :x: | |
 | `fromTag` | Override the tag to use when comparing against the branch in order to fetch the list of commits. | :x: | |
+| `include` | Specify a regular expression that must be matched by a file in a commit for it to be evaluated. If omitted, all commits are evaluated. | :x: | |
 
 ## Outputs
 

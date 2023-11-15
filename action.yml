@@ -44,6 +44,10 @@ inputs:
     description: Override the tag to use when comparing against the branch in order to fetch the list of commits.
     required: false
     default: ''
+  include :
+    description: Specify a regular expression that must be matched by a file in a commit for it to be evaluated. If omitted, all commits are included.
+    required: false
+    default: ''
 outputs:
   current:
     description: Current version number / latest tag.
