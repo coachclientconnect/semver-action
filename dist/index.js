@@ -31181,7 +31181,7 @@ async function main() {
     })
     totalCommits = _.get(commitsRaw, 'data.total_commits', 0)
     var rangeFiles = _.get(commitsRaw, 'data.files', [])
-    rangeFiles.push(...rangeFiles)
+    files.push(...rangeFiles)
     var rangeCommits = _.get(commitsRaw, 'data.commits', [])
     commits.push(...rangeCommits)
     if ((curPage - 1) * 100 + rangeCommits.length < totalCommits) {
