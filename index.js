@@ -143,7 +143,7 @@ async function main() {
     var rangeCommits = _.get(commitsRaw, 'data.commits', [])
     if (includeExpression) {
       rangeCommits = _.filter(rangeCommits, commit => _.some(commit.files, file => {
-        console.log("evaluating " + file.filename)
+        process.stderr.write("evaluating " + file.filename)
         includeExpression.test(file.filename)
       }))
     }
