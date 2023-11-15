@@ -31182,8 +31182,8 @@ async function main() {
     var rangeCommits = _.get(commitsRaw, 'data.commits', [])
     if (includeExpression) {
       rangeCommits = _.filter(rangeCommits, commit => _.some(commit.files, file => {
-        process.stderr.write("evaluating " + file.filename)
-        includeExpression.test(file.filename)
+        core.info("evaluating " + file.filename)
+        return includeExpression.test(file.filename)
       }))
     }
     commits.push(...rangeCommits)
