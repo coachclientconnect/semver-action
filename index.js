@@ -142,7 +142,10 @@ async function main() {
     totalCommits = _.get(commitsRaw, 'data.total_commits', 0)
     var rangeCommits = _.get(commitsRaw, 'data.commits', [])
     if (includeExpression) {
-      rangeCommits = _.filter(rangeCommits, commit => _.some(commit.files, file => includeExpression.test(file)))
+      rangeCommits = _.filter(rangeCommits, commit => _.some(commit.files, file => {
+        console.log("evaluating " + file.filename)
+        includeExpression.test(file.filename)
+      }))
     }
     commits.push(...rangeCommits)
     if ((curPage - 1) * 100 + rangeCommits.length < totalCommits) {
@@ -154,9 +157,10 @@ async function main() {
     commits.push(...additionalCommits)
   }
 
-  if (!commits || commits.length < 1) {
-    return core.setFailed('Couldn\'t find any commits between HEAD and latest tag.')
-  }
+  // TODO: remove
+  // if (!commits || commits.length < 1) {
+  //   return core.setFailed('Couldn\'t find any commits between HEAD and latest tag.')
+  // }
 
   // PARSE COMMITS
 
