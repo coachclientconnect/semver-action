@@ -139,10 +139,10 @@ async function main() {
       page: curPage,
       per_page: 100
     })
+    core.info("commits: " + JSON.stringify(commitsRaw))
     totalCommits = _.get(commitsRaw, 'data.total_commits', 0)
     var rangeCommits = _.get(commitsRaw, 'data.commits', [])
     if (includeExpression) {
-      core.info("eval " + JSON.stringify(rangeCommits))
       rangeCommits = _.filter(rangeCommits, commit => _.some(commit.files, file => {
         core.info("evaluating " + file.filename)
         return includeExpression.test(file.filename)
