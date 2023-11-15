@@ -31055,7 +31055,7 @@ async function main() {
   const additionalCommits = core.getInput('additionalCommits').split('\n').map(l => l.trim()).filter(l => l !== '')
   const fromTag = core.getInput('fromTag')
   const filesPattern = core.getInput('files')
-  const filesExpression = includePattern != "" ? new RegExp(filesPattern) : null
+  const filesExpression = filesPattern != "" ? new RegExp(filesPattern) : null
 
   const bumpTypes = {
     major: core.getInput('majorList').split(',').map(p => p.trim()).filter(p => p),
@@ -31179,7 +31179,6 @@ async function main() {
       page: curPage,
       per_page: 100
     })
-    core.info("commits: " + JSON.stringify(commitsRaw))
     totalCommits = _.get(commitsRaw, 'data.total_commits', 0)
     var rangeFiles = _.get(commitsRaw, 'data.files', [])
     rangeFiles.push(...rangeFiles)
