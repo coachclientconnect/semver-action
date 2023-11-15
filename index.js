@@ -162,10 +162,15 @@ async function main() {
 
   // determine if commits should be processed. if there is no file expression, yes. otherwise,
   // process commits only if at least one file matches the file expression
-  const processCommits = !filesExpression || _.some(files, file => {
-    core.info("evaluating " + file.filename)
-    return filesExpression.test(file.filename)
-  })
+  var processCommits = true
+  if (filesExpression) {
+    core.info("evaluating pattern " + filesPattern + " " + JSON.stringify(files))
+    processCommits = _.some(files, file => {
+      core.info("evaluating " + file.filename)
+      return filesExpression.test(file.filename)
+    })
+  }
+
   if (processCommits) {
     for (const commit of commits) {
       try {
