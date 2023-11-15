@@ -15,8 +15,8 @@ async function main() {
   const prefix = core.getInput('prefix') || ''
   const additionalCommits = core.getInput('additionalCommits').split('\n').map(l => l.trim()).filter(l => l !== '')
   const fromTag = core.getInput('fromTag')
-  const includePattern = core.getInput('include')
-  const includeExpression = includePattern != "" ? new RegExp(includePattern) : null
+  const filesPattern = core.getInput('files')
+  const filesExpression = includePattern != "" ? new RegExp(filesPattern) : null
 
   const bumpTypes = {
     major: core.getInput('majorList').split(',').map(p => p.trim()).filter(p => p),
@@ -129,6 +129,7 @@ async function main() {
   let totalCommits = 0
   let hasMoreCommits = false
   const commits = []
+  const files = []
   do {
     hasMoreCommits = false
     curPage++
@@ -141,13 +142,9 @@ async function main() {
     })
     core.info("commits: " + JSON.stringify(commitsRaw))
     totalCommits = _.get(commitsRaw, 'data.total_commits', 0)
+    var rangeFiles = _.get(commitsRaw, 'data.files', [])
+    rangeFiles.push(...rangeFiles)
     var rangeCommits = _.get(commitsRaw, 'data.commits', [])
-    if (includeExpression) {
-      rangeCommits = _.filter(rangeCommits, commit => _.some(commit.files, file => {
-        core.info("evaluating " + file.filename)
-        return includeExpression.test(file.filename)
-      }))
-    }
     commits.push(...rangeCommits)
     if ((curPage - 1) * 100 + rangeCommits.length < totalCommits) {
       hasMoreCommits = true
@@ -158,39 +155,40 @@ async function main() {
     commits.push(...additionalCommits)
   }
 
-  // TODO: remove
-  // if (!commits || commits.length < 1) {
-  //   return core.setFailed('Couldn\'t find any commits between HEAD and latest tag.')
-  // }
-
   // PARSE COMMITS
 
   const majorChanges = []
   const minorChanges = []
   const patchChanges = []
-  for (const commit of commits) {
-    try {
-      const cAst = cc.toConventionalChangelogFormat(cc.parser(commit.commit.message))
-      if (bumpTypes.major.includes(cAst.type)) {
-        majorChanges.push(commit.commit.message)
-        core.info(`[MAJOR] Commit ${commit.sha} of type ${cAst.type} will cause a major version bump.`)
-      } else if (bumpTypes.minor.includes(cAst.type)) {
-        minorChanges.push(commit.commit.message)
-        core.info(`[MINOR] Commit ${commit.sha} of type ${cAst.type} will cause a minor version bump.`)
-      } else if (bumpTypes.patchAll || bumpTypes.patch.includes(cAst.type)) {
-        patchChanges.push(commit.commit.message)
-        core.info(`[PATCH] Commit ${commit.sha} of type ${cAst.type} will cause a patch version bump.`)
-      } else {
-        core.info(`[SKIP] Commit ${commit.sha} of type ${cAst.type} will not cause any version bump.`)
-      }
-      for (const note of cAst.notes) {
-        if (note.title === 'BREAKING CHANGE') {
+
+  // determine if commits should be processed. if there is no file expression, yes. otherwise,
+  // process commits only if at least one file matches the file expression
+  const processCommits = !filesExpression || _.some(files, file => filesExpression.test(file.filename))
+  if (processCommits) {
+    for (const commit of commits) {
+      try {
+        const cAst = cc.toConventionalChangelogFormat(cc.parser(commit.commit.message))
+        if (bumpTypes.major.includes(cAst.type)) {
           majorChanges.push(commit.commit.message)
-          core.info(`[MAJOR] Commit ${commit.sha} has a BREAKING CHANGE mention, causing a major version bump.`)
+          core.info(`[MAJOR] Commit ${commit.sha} of type ${cAst.type} will cause a major version bump.`)
+        } else if (bumpTypes.minor.includes(cAst.type)) {
+          minorChanges.push(commit.commit.message)
+          core.info(`[MINOR] Commit ${commit.sha} of type ${cAst.type} will cause a minor version bump.`)
+        } else if (bumpTypes.patchAll || bumpTypes.patch.includes(cAst.type)) {
+          patchChanges.push(commit.commit.message)
+          core.info(`[PATCH] Commit ${commit.sha} of type ${cAst.type} will cause a patch version bump.`)
+        } else {
+          core.info(`[SKIP] Commit ${commit.sha} of type ${cAst.type} will not cause any version bump.`)
         }
+        for (const note of cAst.notes) {
+          if (note.title === 'BREAKING CHANGE') {
+            majorChanges.push(commit.commit.message)
+            core.info(`[MAJOR] Commit ${commit.sha} has a BREAKING CHANGE mention, causing a major version bump.`)
+          }
+        }
+      } catch (err) {
+        core.info(`[INVALID] Skipping commit ${commit.sha} as it doesn't follow conventional commit format.`)
       }
-    } catch (err) {
-      core.info(`[INVALID] Skipping commit ${commit.sha} as it doesn't follow conventional commit format.`)
     }
   }
 
