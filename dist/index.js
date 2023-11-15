@@ -31054,6 +31054,8 @@ async function main() {
   const prefix = core.getInput('prefix') || ''
   const additionalCommits = core.getInput('additionalCommits').split('\n').map(l => l.trim()).filter(l => l !== '')
   const fromTag = core.getInput('fromTag')
+  const includePattern = core.getInput('include')
+  const includeExpression = includePattern ? new RegExp(includePattern) : null
 
   const bumpTypes = {
     major: core.getInput('majorList').split(',').map(p => p.trim()).filter(p => p),
@@ -31177,7 +31179,10 @@ async function main() {
       per_page: 100
     })
     totalCommits = _.get(commitsRaw, 'data.total_commits', 0)
-    const rangeCommits = _.get(commitsRaw, 'data.commits', [])
+    var rangeCommits = _.get(commitsRaw, 'data.commits', [])
+    if (includeExpression) {
+      rangeCommits = _.filter(rangeCommits, commit => _.some(commit.files, file => includeExpression.test(file)))
+    }
     commits.push(...rangeCommits)
     if ((curPage - 1) * 100 + rangeCommits.length < totalCommits) {
       hasMoreCommits = true
