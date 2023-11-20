@@ -15,8 +15,8 @@ async function main() {
   const prefix = core.getInput('prefix') || ''
   const additionalCommits = core.getInput('additionalCommits').split('\n').map(l => l.trim()).filter(l => l !== '')
   const fromTag = core.getInput('fromTag')
-  const filesPattern = core.getInput('files')
-  const filesExpression = filesPattern != "" ? new RegExp(filesPattern) : null
+  const filePatterns = core.getMultilineInput('files')
+  const fileExpressions = filePatterns.map(pattern => new RegExp(pattern))
 
   const bumpTypes = {
     major: core.getInput('majorList').split(',').map(p => p.trim()).filter(p => p),
@@ -162,7 +162,8 @@ async function main() {
 
   // determine if commits should be processed. if there is no file expression, yes. otherwise,
   // process commits only if at least one file matches the file expression
-  processCommits = !filesExpression || _.some(files, file => filesExpression.test(file.filename))
+  processCommits = fileExpressions.length == 0 ||
+    _.some(files, file => fileExpressions.some(expression => expression.test(file.filename)))
   if (processCommits) {
     for (const commit of commits) {
       try {
@@ -190,7 +191,7 @@ async function main() {
       }
     }
   } else {
-    core.info(`[SKIP] No files matched the provided file pattern (${filesPattern}), ignoring commits`)
+    core.info(`[SKIP] No files matched the provided file patterns (${filePatterns}), ignoring commits`)
   }
 
   let bump = null
