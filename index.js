@@ -18,7 +18,9 @@ async function main() {
   const fromTag = core.getInput('fromTag')
   const maxTagsToFetch = _.toSafeInteger(core.getInput('maxTagsToFetch') || 10)
   const fetchLimit = (maxTagsToFetch < 1 || maxTagsToFetch > 100) ? 10 : maxTagsToFetch
+
   const fileFilters = core.getMultilineInput('files').map((file) => new RegExp(file))
+  console.log("file filters", fileFilters)
 
   const bumpTypes = {
     major: core.getInput('majorList').split(',').map(p => p.trim()).filter(p => p),
@@ -171,6 +173,10 @@ async function main() {
       hasMoreCommits = true
     }
   } while (hasMoreCommits)
+
+  if (files.length > 0) {
+    console.log("file", files[0])
+  }
 
   if (fileFilters.length > 0) {
     const matches = files.some((file) => fileFilters.some((fileFilter) => fileFilter.test(file.filename)));
