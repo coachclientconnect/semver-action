@@ -52948,7 +52948,7 @@ const _ = __nccwpck_require__(250)
 const cc = __nccwpck_require__(4523)
 const semver = __nccwpck_require__(1383)
 
-async function main () {
+async function main() {
   const token = core.getInput('token')
   const branch = core.getInput('branch')
   const gh = github.getOctokit(token)
@@ -52963,6 +52963,9 @@ async function main () {
   const maxTagsToFetch = _.toSafeInteger(core.getInput('maxTagsToFetch') || 10)
   const fetchLimit = (maxTagsToFetch < 1 || maxTagsToFetch > 100) ? 10 : maxTagsToFetch
 
+  const fileFilters = core.getMultilineInput('files').map((file) => new RegExp(file))
+  console.log("file filters", fileFilters)
+
   const bumpTypes = {
     major: core.getInput('majorList').split(',').map(p => p.trim()).filter(p => p),
     minor: core.getInput('minorList').split(',').map(p => p.trim()).filter(p => p),
@@ -52970,7 +52973,7 @@ async function main () {
     patchAll: (core.getInput('patchAll') === true || core.getInput('patchAll') === 'true')
   }
 
-  function outputVersion (version) {
+  function outputVersion(version) {
     core.exportVariable('next', `${prefix}v${version}`)
     core.exportVariable('nextStrict', `${prefix}${version}`)
 
@@ -53010,11 +53013,11 @@ async function main () {
         }
       }
     `,
-    {
-      owner,
-      repo,
-      fetchLimit
-    })
+      {
+        owner,
+        repo,
+        fetchLimit
+      })
 
     const tagsList = _.get(tagsRaw, 'repository.refs.nodes', [])
     if (tagsList.length < 1) {
@@ -53094,6 +53097,7 @@ async function main () {
   let totalCommits = 0
   let hasMoreCommits = false
   const commits = []
+  const files = []
   do {
     hasMoreCommits = false
     curPage++
@@ -53107,10 +53111,23 @@ async function main () {
     totalCommits = _.get(commitsRaw, 'data.total_commits', 0)
     const rangeCommits = _.get(commitsRaw, 'data.commits', [])
     commits.push(...rangeCommits)
+    const rangeFiles = _.get(commitsRaw, 'data.files', [])
+    files.push(...rangeFiles)
     if ((curPage - 1) * 100 + rangeCommits.length < totalCommits) {
       hasMoreCommits = true
     }
   } while (hasMoreCommits)
+
+  if (files.length > 0) {
+    console.log("file", files[0])
+  }
+
+  if (fileFilters.length > 0) {
+    const matches = files.some((file) => fileFilters.some((fileFilter) => fileFilter.test(file.filename)));
+    if (!matches) {
+      commits.length = 0
+    }
+  }
 
   if (additionalCommits && additionalCommits.length > 0) {
     commits.push(...additionalCommits)
